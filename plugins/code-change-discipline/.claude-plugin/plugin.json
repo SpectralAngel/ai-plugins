@@ -1,0 +1,19 @@
+{
+  "name": "code-change-discipline",
+  "version": "1.0.0",
+  "description": "Stop the agent from grepping its way through a large repo. Three skills — a discovery ladder over a code knowledge graph with silent-truncation detection, LSP as the tiebreaker, narrow-window editing and verification by test count; a sweeping-change playbook for migrations that outgrow one context; and a codebase-memory query reference — plus SessionStart and SubagentStart hooks that make sure the discipline is actually invoked. Requires codebase-memory-mcp.",
+  "author": {
+    "name": "Carlos Flores",
+    "email": "cafg10@gmail.com"
+  },
+  "homepage": "https://github.com/SpectralAngel/ai-plugins/tree/main/plugins/code-change-discipline",
+  "license": "MIT",
+  "keywords": [
+    "code-search",
+    "refactoring",
+    "migration",
+    "lsp",
+    "knowledge-graph",
+    "context-efficiency"
+  ]
+}
