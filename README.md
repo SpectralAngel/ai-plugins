@@ -11,42 +11,47 @@ language server as the tiebreaker, grep last and only when named out loud — pl
 the rest of the change honest: detect silent truncation before quoting a count, read a narrow window
 before editing, know the test count before you start.
 
-Three skills and two hooks:
+It **augments** codebase-memory-mcp rather than wrapping it. That server ships its own skill, agents
+and reminders covering which tool answers which question; this plugin covers what it leaves out.
+
+Two skills and three hooks:
 
 | Component | What it does |
 |---|---|
-| `code-change-discipline` (skill) | The ladder, LSP as tiebreaker, the Read-then-Edit protocol, verification by test count. Fires before the first search and the first edit of any code task, at any size. |
+| `code-change-discipline` (skill) | Orientation and per-path coverage checks, the defaults that silently narrow results, truncation detection, LSP as tiebreaker, the Read-then-Edit protocol, verification by test count. Fires before the first search and the first edit of any code task, at any size. |
 | `sweeping-change` (skill) | What changes when the work outgrows one context: slicing across subagents, worktree hygiene, and the execution log that makes corrections compound instead of being rediscovered by every agent. |
-| `codebase-memory` (skill) | Query reference for the knowledge graph — which tool answers which structural question, edge types, Cypher examples, per-tool pagination gotchas. |
+| `PreToolUse` hook | Auto-approves the read-only codebase-memory-mcp tools, so graph queries do not prompt in plan mode. Write tools still prompt. |
 | `SessionStart` hook | Injects the reminder to invoke the discipline skill at session start, resume, clear and compact. |
-| `SubagentStart` hook | Same reminder into every subagent's context, since a fresh subagent knows none of it. |
+| `SubagentStart` hook | Same reminder into every subagent context, since a fresh subagent knows none of it. |
 
 The hooks are the point. A skill that is never invoked does nothing, and "invoke this before you
 search" is exactly the instruction a model skims past when it already has a plausible next action.
 
 ## Requirements
 
-These are hard requirements, not suggestions — the skills name specific tools and their exact
-parameters, and without them most of the ladder has no rungs.
+These are hard requirements, not suggestions — the skills build directly on these tools, and without
+them most of the ladder has no rungs.
 
-**1. [codebase-memory-mcp](https://github.com/DeusData/codebase-memory-mcp)** — the code knowledge
-graph. Install the binary from Releases, register it, and index each repo you work in:
+**1. [codebase-memory-mcp](https://github.com/DeusData/codebase-memory-mcp) 0.11.0 or later** — the
+code knowledge graph. Install the binary from Releases, then let it configure itself:
 
-```jsonc
-// ~/.claude.json
-{
-  "mcpServers": {
-    "codebase-memory-mcp": { "command": "/path/to/codebase-memory-mcp" }
-  }
-}
+```
+codebase-memory-mcp install --clients=claude
 ```
 
-Then, in a session: `index_repository` on the repo root. It writes, and it takes minutes.
+That registers the MCP server, installs its `codebase-memory` skill, three read-only agents, and its
+own search-augmentation and reminder hooks. This plugin assumes all of that is present and does not
+duplicate it. Then, in a session, run `index_repository` on the repo root — it writes, and it takes
+minutes. Re-index after upgrading the server.
+
+Earlier releases will not do: this plugin's guidance names tools (`check_index_coverage`,
+`get_file_outline`) and defaults (`search_code(regex=false)`) that only exist from 0.11.0.
 
 **2. A language server, via Claude Code's LSP tool** — `"env": { "ENABLE_LSP_TOOL": "1" }` in
-`settings.json`, plus a server for your stack (the `typescript-lsp` and `csharp-lsp` plugins in the
-official marketplace are the easy path). LSP is what the skills fall back to when the graph looks
-stale or ambiguous, and `findReferences` is the only reliable way to count call sites.
+`settings.json`, plus a server for your stack (the `typescript-lsp`, `csharp-lsp` and `jdtls-lsp`
+plugins in the official marketplace are the easy path). LSP is what the skills fall back to when the
+graph looks stale or ambiguous, and `findReferences` is the only reliable way to count call sites.
+codebase-memory-mcp has no LSP concept at all — this is the plugin's own contribution.
 
 Without either one, the skills still tell you to degrade out loud and treat every count as a lower
 bound — but you are getting a fraction of the value.
@@ -60,12 +65,33 @@ bound — but you are getting a fraction of the value.
 
 Restart the session so the hooks load.
 
+## Permission prompts in plan mode
+
+Read-only graph queries prompt for approval in plan mode, which makes the discovery ladder
+unusable exactly where it matters most. A Claude Code plugin **cannot** ship permission rules —
+`plugin.json` has no `permissions` field, and a plugin's `settings.json` supports only `agent` and
+`subagentStatusLine` — so the fix here is a `PreToolUse` hook that returns
+`permissionDecision: "allow"` for the thirteen read-only tools.
+
+The allow-list is the hook's `matcher` regex, anchored with `$`. `index_repository`,
+`delete_project`, `manage_adr` and `ingest_traces` are deliberately excluded and still prompt.
+
+## Windows
+
+The hooks are inline shell commands, not scripts, and every payload is single-quoted so it parses
+identically under `sh`, Git Bash and PowerShell. **Git Bash is not required.** This matters because
+Claude Code installs as a native binary, so neither Node nor Python is guaranteed to be present, and
+a hook that cannot start fails *non-blockingly* — it looks like it ran and contributes nothing.
+
+If you edit the hooks, keep the payload rules in
+[the plugin README](plugins/code-change-discipline/README.md); CI enforces them.
+
 ## Turning the hooks off
 
 The plugin injects text into every session and every subagent. If you want the skills but not the
 nagging, disable the plugin and copy `plugins/code-change-discipline/skills/` into
-`~/.claude/skills/` by hand, or fork and delete `hooks/hooks.json`. There is no setting that keeps
-the skills and drops the hooks.
+`~/.claude/skills/` by hand, or fork and delete `hooks/hooks.json`. Note that this also gives up the
+permission hook. There is no setting that keeps the skills and drops the hooks.
 
 ## Language servers — a gotcha worth knowing
 
@@ -77,12 +103,6 @@ loads, without starting a session.
 
 This is the class of failure the skills care about: not an error, just empty results that look like
 an answer.
-
-## Not shipped here
-
-codebase-memory-mcp has its own `hook-augment` subcommand, wired as a `PreToolUse` hook on
-`Grep|Glob`, which adds graph context to searches the agent runs anyway. It belongs to that project,
-not this plugin. Wire it yourself if you want it.
 
 ## Other agents
 

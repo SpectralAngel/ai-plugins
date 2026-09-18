@@ -15,7 +15,9 @@ lives in.
 Use, in this order, whatever your environment actually provides:
 
 1. **A structural index** — a code knowledge graph or symbol database that returns the *containing
-   symbol*, not just the line.
+   symbol*, not just the line. An index covers what it managed to parse, which is rarely everything.
+   Before you cite a file, check whether the index actually covers it; where it does not, read that
+   range directly and say so. A tool reporting no known gap is not the same as proof there is none.
 2. **A language server** — `findReferences`, `goToDefinition`, `goToImplementation`, call hierarchy.
 3. **Disciplined grep**, last: file list first (`--files-with-matches`), then one narrow pattern with
    line numbers.

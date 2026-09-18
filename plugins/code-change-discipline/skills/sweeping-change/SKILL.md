@@ -76,14 +76,18 @@ Most of a brief is reusable. Adapt the bracketed parts:
 `skill: code-change-discipline`) and follow it. Do not search anything before you have.
 
 If that skill is not available to you, the minimum is: this codebase is large — **do not use Grep
-or Glob to find code, and never Read a large file in order to search it.** Use
-search_code(project=…, mode="files") to scope, then mode="compact"; then search_graph(project=…);
-then get_code_snippet(project=…, qualified_name=…). `project` is required on all of them. Watch
-total_grep_matches vs total_results vs limit for silent truncation. **LSP is the tiebreaker —
-trust it over the graph.** Read(offset, limit) a narrow window, then Edit with a tight old_string.
+or Glob to find code, and never Read a large file in order to search it.** Use codebase-memory-mcp
+(its own `codebase-memory` skill is the tool reference), watch every response for silent truncation,
+and remember that `search_code` treats patterns literally unless `regex=true` and `trace_path`
+excludes tests unless `include_tests=true`. **LSP is the tiebreaker — trust it over the graph.**
+Read(offset, limit) a narrow window, then Edit with a tight old_string.
 
-Project name (exact): <PROJECT>. Index built at <BASE_SHA>; HEAD is <HEAD_SHA> — confirm anything
-load-bearing with LSP before editing.
+**Before you cite a path, call `check_index_coverage` on it** — once, batched over every path your
+conclusion rests on. A clean result means no recorded gap, not proof of completeness; where coverage
+is partial, skipped, excluded or stale, read that range directly and say so.
+
+Project name (exact): <PROJECT>. `project` is required on every codebase-memory-mcp call. Confirm
+anything load-bearing with LSP before editing.
 
 **Never Read whole:** <the two or three largest files in scope>.
 
@@ -103,6 +107,11 @@ thing an agent produces, and asking for it explicitly changes what comes back.
 
 Slices that append to the **same file** — a shared catalog, a constants file, a resource bundle —
 cannot run concurrently even when their edit sites are in different files. Serialize those.
+
+codebase-memory-mcp ships its own read-only agents — `codebase-memory-scout` (fast, provisional),
+`codebase-memory` (task-directed) and `codebase-memory-auditor` (bounded full verification) — plus
+`--tool-profile=analysis|scout` to restrict the surface. Use them for investigation slices; they
+cannot edit.
 
 For genuinely disjoint scopes, use **git worktrees**, and note:
 - `isolation: "worktree"` operates on the primary working directory. In a monorepo whose **parent

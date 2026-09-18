@@ -1,7 +1,7 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "ai-plugins",
-  "description": "Plugins for working on large codebases without burning context — discovery discipline, migration playbooks, and the hooks that enforce them.",
+  "description": "Plugins for working on large codebases without burning context \u2014 discovery discipline, migration playbooks, and the hooks that enforce them.",
   "owner": {
     "name": "Carlos Flores",
     "email": "cafg10@gmail.com"
@@ -9,7 +9,7 @@
   "plugins": [
     {
       "name": "code-change-discipline",
-      "description": "Stop the agent from grepping its way through a large repo. A discovery ladder over a code knowledge graph with silent-truncation detection, LSP as the tiebreaker, narrow-window editing, verification by test count, and a sweeping-change playbook for migrations that outgrow one context. Requires codebase-memory-mcp.",
+      "description": "Stop the agent from grepping its way through a large repo. Augments codebase-memory-mcp (>= 0.11.0) with what it does not ship: a discovery ladder with silent-truncation detection, LSP as the tiebreaker, narrow-window editing, verification by test count, a sweeping-change playbook for migrations that outgrow one context, and hooks that enforce all of it -- including auto-approval of read-only graph queries so they do not prompt in plan mode. Hooks run on macOS, Linux and Windows without Git Bash.",
       "author": {
         "name": "Carlos Flores",
         "email": "cafg10@gmail.com"

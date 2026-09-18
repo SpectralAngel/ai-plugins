@@ -1,43 +1,25 @@
 {
-  "description": "Points every session and every subagent at the code-change-discipline skill before the first code search or edit.",
+  "description": "Points every session and every subagent at the code-change-discipline skill before the first code search or edit, and auto-approves read-only codebase-memory-mcp queries so they do not prompt in plan mode.",
   "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "mcp__codebase-memory-mcp__(list_projects|index_status|check_index_coverage|detect_changes|search_code|search_graph|query_graph|trace_path|get_code_snippet|get_file_outline|get_graph_schema|get_architecture|compare_graphs)$",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo '{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"permissionDecision\":\"allow\",\"permissionDecisionReason\":\"read-only codebase-memory query\"}}'",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
     "SessionStart": [
       {
-        "matcher": "startup",
+        "matcher": "startup|resume|clear|compact",
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/session-code-discipline.sh\"",
-            "timeout": 5
-          }
-        ]
-      },
-      {
-        "matcher": "resume",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/session-code-discipline.sh\"",
-            "timeout": 5
-          }
-        ]
-      },
-      {
-        "matcher": "clear",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/session-code-discipline.sh\"",
-            "timeout": 5
-          }
-        ]
-      },
-      {
-        "matcher": "compact",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/session-code-discipline.sh\"",
+            "command": "echo 'CRITICAL - before your first code search and before your first edit:'; echo ''; echo 'Invoke the `code-change-discipline` skill (Skill tool, skill: code-change-discipline)'; echo 'and follow it. It is not optional and it is not size-gated: a one-line fix uses the same'; echo 'ladder as a migration.'; echo ''; echo 'If you cannot, the minimum is: never use Grep or Glob to FIND code, and never Read a large'; echo 'file in order to search it. That overrides any advice to use them freely. LSP is the'; echo 'tiebreaker - trust it over the graph. Read a narrow window before you Edit. Know the test'; echo 'count before you start, and account for it after.'",
             "timeout": 5
           }
         ]
@@ -49,7 +31,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/subagent-code-discipline.sh\"",
+            "command": "echo '{\"hookSpecificOutput\":{\"hookEventName\":\"SubagentStart\",\"additionalContext\":\"Before your first code search or first edit, invoke the `code-change-discipline` skill (Skill tool, skill: code-change-discipline) and follow it. It is not size-gated. If you cannot: never use Grep or Glob to FIND code and never Read a large file in order to search it, which overrides any advice to use them freely; LSP is the tiebreaker, trust it over the graph; Read a narrow window before you Edit; and know the test count before and after.\"}}'",
             "timeout": 5
           }
         ]

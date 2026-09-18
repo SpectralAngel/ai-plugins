@@ -14,9 +14,11 @@ Applies to **every** code change in an existing repo. Size decides whether you f
 inconsistent (`api-server` vs `Users-me-src-acme-api-server`). Copy the `name` string
 verbatim. **`project` is required on every codebase-memory-mcp tool except `list_projects`.**
 
-`index_status(project=…)` → compare `head_sha` with `base_sha`. Different means the index predates
-commits on disk. There is no dirty flag; `detect_changes(project=…)` shows working-tree drift.
-When they differ, **confirm anything load-bearing with LSP or a narrow Read before you edit.**
+Indexes auto-refresh, so there is no stale-SHA check to run. Freshness is a **per-path** question:
+`index_status(project=…, diagnostics="summary")` for readiness and coverage gaps, then
+**`check_index_coverage(project=…, paths=[…])` on every path you are about to cite.** A clean
+result means no *recorded* gap — not proof of completeness. Where coverage comes back partial,
+skipped, excluded, stale or unknown, read the reported range directly before relying on it.
 
 Nothing in `list_projects` matches → §3.
 
@@ -24,26 +26,49 @@ Nothing in `list_projects` matches → §3.
 
 **Do not use Grep or Glob to find code, and never Read a large file in order to search it.**
 Grep here returns hundreds of unranked hits and will exhaust your context before you finish.
-Use, in this order:
 
-1. `search_code(project=…, pattern=…, mode="files")` to scope, then re-call with
-   `mode="compact", context=N` — graph-augmented grep that returns the CONTAINING SYMBOL, which
-   plain grep cannot. `path_filter` is a regex over result paths; `file_pattern` is a glob handed
-   to `grep --include`. Use `mode="full"` only when you actually need the source text.
-2. `search_graph(project=…, query=…)` for BM25 discovery, `name_pattern=…` for exact regex.
-   **They are not additive — when `query` is set, `name_pattern` is ignored.** `semantic_query`
-   takes an **array** of keywords (`["payoff","quote"]`), never a bare string, and its hits come
-   back under `semantic_results`, not `results`.
-3. `get_code_snippet(project=…, qualified_name=…)` — reads exactly one symbol. Prefer over Read.
-4. LSP — §2.
+The tool reference — the decision matrix, edge types, Cypher, evidence tiers — is the
+**`codebase-memory` skill that codebase-memory-mcp ships and keeps in step with its own releases.**
+Use it for *what to call*. This section covers only what that reference leaves out, plus the places
+it is wrong.
+
+Order: `search_code` to scope → `search_graph` to find symbols → `get_code_snippet` to read one →
+LSP (§2) to settle anything load-bearing.
+
+**Defaults that silently narrow your results.** Each of these produces a confident wrong answer
+rather than an error:
+
+- **`search_code(regex=…)` defaults to `false`.** Patterns are literal. A regex typed without it
+  matches nothing and looks like an honest zero.
+- **`trace_path(include_tests=…)` defaults to `false`.** Every trace omits test call sites, so a
+  call-site count taken from a default trace is not a count of call sites.
+- **`get_code_snippet(source_mode=…)` defaults to `auto`, which OUTLINES any container over 200
+  lines** instead of returning its source. Pass `source_mode="full"` when you need the text, and
+  read `coverage_note` for the gaps.
+- **`max_output_tokens`** exists on most tools and truncates to fit. Output can be cut for size
+  alone, independently of any `limit`.
 
 **Detect truncation every time; it is silent.**
 
-- `search_code`: compare `total_grep_matches` (raw hits) and `total_results` (deduped functions)
-  against your `limit` (default **10**). There is **no `offset` and no `has_more`** — to see more,
-  raise `limit` or narrow with `file_pattern` / `path_filter`.
-- `search_graph`: `limit` defaults to **200**; page with `total` + `has_more` + `offset += limit`.
+- `search_code`: `limit` defaults to **10**. Compare `total_grep_matches` (raw hits) and
+  `total_results` (deduped functions) against it, then page with `result_offset`/`result_limit`
+  or narrow with `file_pattern` / `path_filter`.
+- `search_graph`: `limit` defaults to **50**; page with `total` + `has_more` + `offset += limit`.
+- `query_graph`: shows **200** rows by default (`max_rows`, up to 99998); page with `offset` or
+  `cursor`, and put a `LIMIT` in the Cypher for broad queries.
 - **A count taken from a truncated response is not a count.** State the number and how you got it.
+
+**Corrections to the shipped reference.** It gets these wrong; the schema is authoritative:
+
+- **`search_graph` has no `direction` parameter** — the reference suggests
+  `search_graph(relationship="CALLS", direction=…)`. Degree there is undirected. To separate callers
+  from callees, take the ranked names and run `trace_path(direction="inbound"|"outbound")`.
+- `search_graph(query=…)` **ignores `name_pattern`** when both are given. `semantic_query` takes an
+  **array** of keywords, never a bare string, and its hits come back under `semantic_results`.
+
+**Tools the reference omits:** `get_file_outline` (one file's declarations without reading it —
+prefer it to Read for orientation), `check_index_coverage` (§0), `compare_graphs` (two indexed
+snapshots), and `query_graph(graph="missed")` for the coverage-gap file tree.
 
 ## 2. LSP is the tiebreaker — trust it over the graph
 
@@ -118,6 +143,10 @@ work stops fitting in one pass.
 
 - Grepping first "just to have a look".
 - Quoting a count off a response whose `total_results` exceeded `limit`.
+- Typing a regex into `search_code` without `regex=true`, then believing the zero.
+- Counting call sites off a `trace_path` that still has `include_tests` defaulted to false.
+- Treating an `auto` snippet of a large class as its source; it is an outline.
+- Citing a path without `check_index_coverage`, or reading a clean coverage result as proof.
 - `search_graph(direction=…)` — no such parameter; use `trace_path` for direction.
 - Retrying LSP after it has already reported no server for that language.
 - Reading a whole file to change three lines of it.
