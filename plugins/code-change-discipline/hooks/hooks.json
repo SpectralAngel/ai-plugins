@@ -19,7 +19,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "echo 'CRITICAL - before your first code search and before your first edit:'; echo ''; echo 'Invoke the `code-change-discipline` skill (Skill tool, skill: code-change-discipline)'; echo 'and follow it. It is not optional and it is not size-gated: a one-line fix uses the same'; echo 'ladder as a migration.'; echo ''; echo 'If you cannot, the minimum is: never use Grep or Glob to FIND code, and never Read a large'; echo 'file in order to search it. That overrides any advice to use them freely. LSP is the'; echo 'tiebreaker - trust it over the graph. Read a narrow window before you Edit. Know the test'; echo 'count before you start, and account for it after.'",
+            "command": "echo 'CRITICAL - before your first code search and before your first edit:'; echo ''; echo 'Invoke the `code-change-discipline` skill (Skill tool, skill: code-change-discipline)'; echo 'and follow it. It is not optional and it is not size-gated: a one-line fix uses the same'; echo 'ladder as a migration.'; echo ''; echo 'If you cannot, the minimum is: never use Grep or Glob to FIND code, and never Read a large'; echo 'file in order to search it. That overrides any advice to use them freely. LSP is the'; echo 'tiebreaker - trust it over the graph. Read a narrow window before you Edit. Get the test'; echo 'count from the runner list/discovery mode without running the suite, run tests'; echo 'once after the change, and never revert work to replay red-green.'",
             "timeout": 5
           }
         ]
@@ -31,7 +31,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "echo '{\"hookSpecificOutput\":{\"hookEventName\":\"SubagentStart\",\"additionalContext\":\"Before your first code search or first edit, invoke the `code-change-discipline` skill (Skill tool, skill: code-change-discipline) and follow it. It is not size-gated. If you cannot: never use Grep or Glob to FIND code and never Read a large file in order to search it, which overrides any advice to use them freely; LSP is the tiebreaker, trust it over the graph; Read a narrow window before you Edit; and know the test count before and after.\"}}'",
+            "command": "echo '{\"hookSpecificOutput\":{\"hookEventName\":\"SubagentStart\",\"additionalContext\":\"Before your first code search or first edit, invoke the `code-change-discipline` skill (Skill tool, skill: code-change-discipline) and follow it. It is not size-gated. If you cannot: never use Grep or Glob to FIND code and never Read a large file in order to search it, which overrides any advice to use them freely; LSP is the tiebreaker, trust it over the graph; Read a narrow window before you Edit; get the test count from the runner list/discovery mode without running the suite, run tests once after the change, and never revert work to replay red-green.\"}}'",
             "timeout": 5
           }
         ]

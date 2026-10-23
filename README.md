@@ -9,7 +9,7 @@ agent reads a 3,000-line file to find three lines, and the context window is gon
 has been changed. This plugin replaces that with an explicit ladder — structural index first, a
 language server as the tiebreaker, grep last and only when named out loud — plus the rules that keep
 the rest of the change honest: detect silent truncation before quoting a count, read a narrow window
-before editing, know the test count before you start.
+before editing, count tests from the runner's discovery mode instead of running a baseline.
 
 It **augments** codebase-memory-mcp rather than wrapping it. That server ships its own skill, agents
 and reminders covering which tool answers which question; this plugin covers what it leaves out.

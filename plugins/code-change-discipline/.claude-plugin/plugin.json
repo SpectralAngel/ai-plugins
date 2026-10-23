@@ -1,6 +1,6 @@
 {
   "name": "code-change-discipline",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "Stop the agent from grepping its way through a large repo. Augments codebase-memory-mcp (>= 0.11.0) with what it does not ship: a discovery ladder with silent-truncation detection, LSP as the tiebreaker, narrow-window editing, verification by test count, a sweeping-change playbook for migrations that outgrow one context, and hooks that enforce all of it -- including auto-approval of read-only graph queries so they do not prompt in plan mode. Hooks run on macOS, Linux and Windows without Git Bash.",
   "author": {
     "name": "Carlos Flores",

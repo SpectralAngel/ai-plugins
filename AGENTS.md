@@ -59,9 +59,14 @@ behind the working tree.
 
 ## 6. Verify by number, not by colour
 
-- Know the test count **before** you start. Track it as a number that must be accounted for, not
-  merely "green". An unexplained delta is a finding in either direction.
-- Run the build and the suite yourself. A report that it passed is not evidence.
+- Get the test count **without running anything** — from the test runner's discovery/list mode or
+  the IDE's test explorer. Record it before editing and compare after. Track it as a number that
+  must be accounted for, not merely "green". An unexplained delta is a finding in either direction.
+- Do not run a pre-change baseline suite by default. Run tests before editing only when you must
+  tell a pre-existing failure from one you caused; otherwise run them once, after the change.
+- No red-green theater: never revert or stash finished work to show a new test failing and then
+  reapply it. Write the test against the finished code and run it once.
+- Run the build and the tests yourself. A report that they passed is not evidence.
 - Diagnostics captured mid-edit look exactly like real failures and are frequently stale. Confirm
   against a real build before acting on them.
 - **Tests can pin a bug as correct.** An assertion can document broken behaviour as expected, so a

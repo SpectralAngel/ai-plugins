@@ -122,9 +122,18 @@ commits behind.
 
 ## 5. Verify by number, not by colour
 
-- Know the test count **before** you start. Track it as a **number that must be accounted for**,
-  not merely "green". An unexplained delta is a finding, in either direction.
-- Run the build and the suite yourself. A report that it passed is not evidence.
+- **Get the test count without running anything.** Use the runner's discovery mode —
+  `dotnet test --list-tests`, `pytest --collect-only -q`, `jest --listTests` / `vitest list`,
+  `go test -list . ./...`, a Gradle/Maven dry run, or the IDE/LSP test explorer. Record it before
+  editing and compare after. Track it as a **number that must be accounted for**, not merely
+  "green". An unexplained delta is a finding, in either direction.
+- **Do not run a pre-change baseline suite by default.** Run tests before editing only when you
+  must tell a pre-existing failure from one you caused — the suite is known red or flaky, or the
+  task is "why is this failing". Otherwise run the build and the tests **once, after** the change.
+- **No red-green theater.** Never revert or stash finished work to show a new test failing, then
+  reapply it. Write the test against the finished code and run it once. If you doubt it exercises
+  the change, read the assertion — do not re-stage history.
+- Run the build and the tests yourself after the change. A report that they passed is not evidence.
 - **Harness diagnostics captured mid-edit look exactly like real failures.** Errors reported while
   a file is being refactored are frequently stale. Confirm against a real build before acting.
 - **Tests can pin a bug as correct.** More than once, an assertion has documented broken behaviour

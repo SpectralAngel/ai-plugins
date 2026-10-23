@@ -62,6 +62,7 @@ Record in the log, at minimum:
 - corrected counts and inventories
 - any plan claim found false, and what is true instead
 - decisions and conventions later slices must follow
+- the verification milestones (§5) and the discovered test count
 - hazards that cost time (environment quirks, misleading tooling)
 - what was deliberately **not** done, and why
 
@@ -91,8 +92,10 @@ anything load-bearing with LSP before editing.
 
 **Never Read whole:** <the two or three largest files in scope>.
 
-**Regression baseline:** <N> tests <plus any double-counting quirk in the runner>. Track it as a
-number that must be accounted for, not merely "green".
+**Test count (from the runner's discovery mode, not a run):** <N> tests <plus any double-counting
+quirk in the runner>. Track it as a number that must be accounted for, not merely "green". Do not
+run the suite before editing. When your slice is done, run the build and the tests covering the
+files you touched, once, and report both counts. Never revert work to replay red-green.
 
 **An agent that finds the plan wrong and says so is doing the job correctly.**
 Append your findings to the execution log at <path> before you finish.
@@ -127,8 +130,14 @@ For genuinely disjoint scopes, use **git worktrees**, and note:
 The per-change verification rules are in `code-change-discipline` §5 and apply to every slice.
 On top of them:
 
-- Do not accept a completion report as evidence. Run the build and the full suite yourself after
-  each slice, **and after each merge** — a merge that is clean textually can still be broken.
+- **Each agent tests its own slice in its round** — build plus the tests covering its files. The
+  orchestrator does not rerun the suite after every slice or merge.
+- **After a merge, build only.** It is cheap and catches a merge that is clean textually but broken.
+- **Run the full suite at milestones** fixed in the plan document when the work is sliced: the end
+  of a wave of merged slices, before a shared-file slice later slices build on, and before the
+  final report. Run it yourself — a completion report is not evidence — and check the total
+  against the discovered count. If a milestone run fails, bisect over that wave's merges rather
+  than rerunning every slice.
 - **Reports are usually accurate but occasionally wrong**, and the wrong ones are confident.
 - **The orchestrator is not the reliable narrator by default.** It will confidently misread tooling
   output — a debugger's synthetic placeholder, a mock's canned response — as production behaviour.
@@ -154,5 +163,7 @@ On top of them:
 - Passing the plan's counts through to the brief as targets rather than lower bounds.
 - Letting two agents commit to the same repo concurrently.
 - Accepting "all tests pass" without knowing what the number should be.
+- Running the full suite before any edit just to learn the count, or after every merge.
+- Reverting finished work to replay red→green.
 - Reporting a residual as a finding instead of closing it. If it is in scope and safe, finish it;
   if you leave it, say plainly why and what would make it doable.
